@@ -1,56 +1,55 @@
 trigger:
-- '*'  # This pipeline will be triggered by any changes in all branches
+- '*' 
 
 pool:
-  vmImage: ubuntu-latest  # The build will run on an Ubuntu VM
+  vmImage: ubuntu-latest 
 
 variables:
-  buildConfiguration: 'Release'  # Global variable, used in tasks as $(buildConfiguration)
+  buildConfiguration: 'Release' 
 
 steps:
-- task: UseDotNet@2  # This task will install a version of .NET SDK on the agent machine
+- task: UseDotNet@2
   displayName: 'Use .NET SDK 6.x'
   inputs:
     packageType: sdk
     version: '6.x'
  
-- task: Npm@1  # This task will run npm install
+- task: Npm@1
   displayName: 'Run npm install'
   inputs:
     verbose: false
  
-- script: './node_modules/.bin/node-sass Tailspin.SpaceGame.Web/wwwroot --output Tailspin.SpaceGame.Web/wwwroot'  # This script will compile Sass assets
+- script: './node_modules/.bin/node-sass Tailspin.SpaceGame.Web/wwwroot --output Tailspin.SpaceGame.Web/wwwroot'
   displayName: 'Compile Sass assets'
  
-- task: gulp@1  # This task will run gulp tasks
+- task: gulp@1
   displayName: 'Run gulp tasks'
  
-- script: 'echo "$(Build.DefinitionName), $(Build.BuildId), $(Build.BuildNumber)" > buildinfo.txt'  # This script will write build info into a text file
+- script: 'echo "$(Build.DefinitionName), $(Build.BuildId), $(Build.BuildNumber)" > buildinfo.txt'
   displayName: 'Write build info'
-  workingDirectory: Tailspin.SpaceGame.Web/wwwroot  # This command will run in the specified working directory
+  workingDirectory: Tailspin.SpaceGame.Web/wwwroot
  
-- task: DotNetCoreCLI@2  # This task will restore project dependencies
+- task: DotNetCoreCLI@2
   displayName: 'Restore project dependencies'
   inputs:
     command: 'restore'
     projects: '**/*.csproj'
  
-- task: DotNetCoreCLI@2  # This task will build the project
+- task: DotNetCoreCLI@2
   displayName: 'Build the project - Release'
   inputs:
     command: 'build'
     arguments: '--no-restore --configuration Release'
     projects: '**/*.csproj'
  
-- task: DotNetCoreCLI@2  # This task will publish the project
+- task: DotNetCoreCLI@2
   displayName: 'Publish the project - Release'
   inputs:
     command: 'publish'
-    projects: '**/*.csproj'
-    publishWebProjects: false
-    arguments: '--no-build --configuration Release --output $(Build.ArtifactStagingDirectory)/Release'
+    publishWebProjects: true  # changed to true
+    arguments: '--no-build --configuration Release --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: true
  
-- task: PublishBuildArtifacts@1  # This task will publish the artifact named 'drop'
+- task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: drop'
-  condition: succeeded()  # This task will run only if all previous steps were successful
+  condition: succeeded()
